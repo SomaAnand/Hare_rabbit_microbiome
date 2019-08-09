@@ -1,0 +1,110 @@
+mkdir 20190608_Illumina_MiSeq                                    #create base directory for all 16S Illumina analysis
+cd 20190608_Illumina_MiSeq
+mkdir 20190805_DADA2_pipeline                                    #create a directory for samples processed through DADA2 pipeline
+cd 20190805_DADA2_pipeline
+mkdir data
+mkdir analysis
+mkdir database
+mkdir visual_artifacts                                           #create sub-directories for raw data, output artifacts, reference fasta files and taxonomy files from 16S database and .qzv visual files to view in https://view.qiime2.org/.
+
+#copy raw data into the data directory
+
+source activate qiime2-2019.9                                    #activate qiime2-2019.7 
+
+# Importing raw data into qiime2
+qiime tools import \
+--type 'SampleData[PairedEndSequencesWithQuality]' \
+--input-path data/ \
+--input-format CasavaOneEightSingleLanePerSampleDirFmt \
+--output-path analysis/20190805_demux-paired-end.qza
+
+# Visualizing imported file as a quality graph
+qiime demux summarize \
+--i-data analysis/20190805_demux-paired-end.qza \
+--o-visualization visual_artifacts/demux.qzv
+
+#DADA2 pipeline- trimmed and truncated based on the demux.qzv graph
+qiime dada2 denoise-paired \
+--i-demultiplexed-seqs analysis/20190805_demux-paired-end.qza \
+--p-trim-left-f 17 \
+--p-trim-left-r 21 \
+--p-trunc-len-f 298 \
+--p-trunc-len-r 256 \
+--o-table analysis/table.qza \
+--o-representative-sequences analysis/rep-seqs.qza \
+--o-denoising-stats analysis/denoising-stats.qza \
+--p-n-threads 12
+
+#copy the metadata file into the working directory
+
+#convert .qza files from DADA2 output to .qzv files which can be visualised
+qiime feature-table summarize \
+--i-table analysis/table.qza \
+--m-sample-metadata-file Hare_Rabbit_Metadata_New.tsv \
+--o-visualization visual_artifacts/20190805_table.qzv \
+
+qiime feature-table tabulate-seqs \
+--i-data analysis/rep-seqs.qza \
+--o-visualization visual_artifacts/rep-seqs.qzv
+  
+qiime metadata tabulate \
+--m-input-file analysis/denoising-stats.qza \
+--o-visualization visual_artifacts/stats-dada2.qzv
+
+#filter features to remove features with a frequency less than two
+qiime feature-table filter-features \
+--i-table analysis/table.qza \
+--p-min-frequency 2 \
+--o-filtered-table analysis/20190808_feature-frequency-filtered-table.qza
+  
+#Import fasta reference sequence file and taxonomy file from SILVA_132 reference database into qiime2 compatible format  
+qiime tools import \
+--type FeatureData[Sequence] \
+--input-path database/SILVA_132_QIIME_release/rep_set/rep_set_16S_only/99/silva_132_99_16S.fna \
+--output-path database/20190807_SILVA_reference_Sequence.qza
+
+qiime tools import \
+--type FeatureData[Taxonomy] \
+--input-format HeaderlessTSVTaxonomyFormat \
+--input-path database/SILVA_132_QIIME_release/taxonomy/16S_only/99/consensus_taxonomy_all_levels.txt \
+--output-path database/20190807_SILVA_taxonomy.qza
+
+#BLAST reference sequence against the query sequence
+qiime feature-classifier classify-consensus-blast \
+--i-query analysis/rep-seqs.qza \
+--i-reference-reads database/20190807_SILVA_reference_Sequence.qza \
+--i-reference-taxonomy database/20190807_SILVA_taxonomy.qza \
+--o-classification analysis/20190807_silva_blast.qza
+ 
+#Construct barplot
+qiime taxa barplot \
+--i-table analysis/20190808_feature-frequency-filtered-table.qza \
+--i-taxonomy analysis/20190807_silva_blast.qza \
+--m-metadata-file Hare_Rabbit_Metadata_New.tsv \
+--o-visualization visual_artifacts/taxa-bar-plots.qzv          #produces output with all the samples without any filter
+
+#Filter table based on sample ID to remove reagent controls and have only the samples. Create a new metadata with only the sample IDs you want to retain in google sheets and download and copy it into the working directory
+qiime feature-table filter-samples \
+--i-table analysis/20190808_feature-frequency-filtered-table.qza \
+--m-metadata-file sample-id-filter.tsv \
+--o-filtered-table analysis/id-filtered-freq2-table.qza 
+
+#Filter table to retain phyla with only > 0.5% abundance as seen in taxa-bar-plots.qzv 
+qiime taxa filter-table 
+--i-table analysis/id-filtered-freq2-table.qza \
+--i-taxonomy analysis/20190807_silva_blast.qza \
+--p-include D_1__Firmicutes,D_1__Bacteroidetes,D_1__Verrucomicrobia,D_1__Actinobacteria,D_1__Cyanobacteria,D_1__Tenericutes,D_1__Proteobacteria,D_1__Patescibacteria,D_1__Lentisphaerae,D_1__Synergistetes \
+--o-filtered-table analysis/sample-freq2-phyla-filtered-table.qza
+
+#Import new metadata with only the retained samples
+#Visualise the filtered table 
+qiime taxa barplot \
+--i-table analysis/sample-freq2-phyla-filtered-table.qza \
+--i-taxonomy analysis/20190807_silva_blast.qza \
+--m-metadata-file sample-only-metadata-new.tsv \
+--o-visualization visual_artifacts/sample-freq2-phyla-filtered-table.qzv
+
+
+
+
+
