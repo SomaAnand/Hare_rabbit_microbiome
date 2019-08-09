@@ -57,6 +57,7 @@ qiime feature-table filter-features \
 --p-min-frequency 2 \
 --o-filtered-table analysis/20190808_feature-frequency-filtered-table.qza
   
+#download SILVA_132.zip file from https://www.arb-silva.de/download/archive/qiime and copy it into the database directory 
 #Import fasta reference sequence file and taxonomy file from SILVA_132 reference database into qiime2 compatible format  
 qiime tools import \
 --type FeatureData[Sequence] \
