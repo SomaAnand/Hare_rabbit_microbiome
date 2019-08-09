@@ -70,7 +70,7 @@ qiime tools import \
 --input-path database/SILVA_132_QIIME_release/taxonomy/16S_only/99/consensus_taxonomy_all_levels.txt \
 --output-path database/20190807_SILVA_taxonomy.qza
 
-#BLAST reference sequence against the query sequence
+#BLAST query sequence against the reference sequence
 qiime feature-classifier classify-consensus-blast \
 --i-query analysis/rep-seqs.qza \
 --i-reference-reads database/20190807_SILVA_reference_Sequence.qza \
