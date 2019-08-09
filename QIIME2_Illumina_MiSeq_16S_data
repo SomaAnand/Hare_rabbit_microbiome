@@ -9,7 +9,7 @@ mkdir visual_artifacts                                           #create sub-dir
 
 #copy raw data into the data directory
 
-source activate qiime2-2019.9                                    #activate qiime2-2019.7 
+source activate qiime2-2019.7                                    #activate qiime2-2019.7 
 
 # Importing raw data into qiime2
 qiime tools import \
