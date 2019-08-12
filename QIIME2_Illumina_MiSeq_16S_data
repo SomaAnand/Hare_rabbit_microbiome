@@ -105,7 +105,19 @@ qiime taxa barplot \
 --m-metadata-file sample-only-metadata-new.tsv \
 --o-visualization visual_artifacts/sample-freq2-phyla-filtered-table.qzv
 
+#Generating tree for phylogenetic analysis for alpha & beta diversity tests
+qiime phylogeny align-to-tree-mafft-fasttree \
+> --i-sequences analysis/rep-seqs.qza \
+> --o-alignment analysis/aligned-rep-seqs.qza \
+> --o-masked-alignment analysis/masked-aligned-rep-seqs.qza \
+> --o-tree analysis/unrooted-tree.qza \
+> --o-rooted-tree analysis/rooted-tree.qza
 
-
-
+#Alpha and beta diversity analysis
+qiime diversity core-metrics-phylogenetic \
+--i-phylogeny analysis/rooted-tree.qza \
+--i-table analysis/id-filtered-freq2-table.qza \
+--p-sampling-depth 149500 \
+--output-dir analysis/core-metrics-results \
+--m-metadata-file sample-only-metadata-new.tsv
 
