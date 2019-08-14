@@ -121,3 +121,37 @@ qiime diversity core-metrics-phylogenetic \
 --output-dir analysis/core-metrics-results \
 --m-metadata-file sample-only-metadata-new.tsv
 
+#Grouping samples based on "subject" in metadata by taking mean - grouping all hares samples into one and rabbit samples into one
+
+qiime feature-table group \
+--i-table analysis/id-filtered-freq2-table.qza \
+--p-axis 'sample' \
+--m-metadata-file sample-only-metadata-new.tsv \
+--m-metadata-column Subject \
+--p-mode 'mean-ceiling' \
+--o-grouped-table analysis/20190814_fre2_id_grouped_table.qza
+
+#visualising the above generated feature table
+qiime feature-table summarize \
+--i-table analysis/20190814_fre2_id_grouped_table.qza \
+--o-visualization visual_files/20190814_20190814_fre2_id_grouped_table.qzv
+
+#filter grouped table on the basis of phylum level taxonomy
+qiime taxa filter-table \ 
+--i-table analysis/20190814_fre2_id_grouped_table.qza \
+--i-taxonomy analysis/20190807_silva_blast.qza \
+--p-include D_1__Firmicutes,D_1__Bacteroidetes,D_1__Verrucomicrobia,D_1__Actinobacteria,D_1__Cyanobacteria,D_1__Tenericutes,D_1__Proteobacteria,D_1__Patescibacteria,D_1__Lentisphaerae,D_1__Synergistetes \
+--o-filtered-table analysis/20190814_grouped-id-freq2-phyla-filtered-table.qza
+
+##generate new metadata containing information for the grouped table ('rabbit' and 'hare)
+#construct barplot
+qiime taxa barplot \
+--i-table analysis/20190814_grouped-id-freq2-phyla-filtered-table.qza \
+--i-taxonomy analysis/20190807_silva_blast.qza \
+--m-metadata-file grouped_metadata.tsv \
+--o-visualization 20190814_fre2_id_phyla_grouped_barplot.qzv
+
+
+
+
+
