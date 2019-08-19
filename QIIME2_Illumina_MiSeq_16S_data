@@ -151,6 +151,112 @@ qiime taxa barplot \
 --m-metadata-file grouped_metadata.tsv \
 --o-visualization 20190814_fre2_id_phyla_grouped_barplot.qzv
 
+## To identify total number of features associated with hares and rabbits at each taxonomic rank
+#collapse the taxa at each level; level 2 is phylum, level 3 is class, level 4 is order, level 5 is family, level 6 is genus and level 7 is species
+qiime taxa collapse 
+--i-table analysis/20190814_fre2_id_grouped_table.qza 
+--i-taxonomy analysis/20190807_silva_blast.qza 
+--p-level 2 
+--o-collapsed-table 20190819_lvl2_collapsed_table.qza
+
+qiime taxa collapse 
+--i-table analysis/20190814_fre2_id_grouped_table.qza 
+--i-taxonomy analysis/20190807_silva_blast.qza 
+--p-level 3 
+--o-collapsed-table 20190819_lvl3_collapsed_table.qza
+
+ qiime taxa collapse 
+ --i-table analysis/20190814_fre2_id_grouped_table.qza 
+ --i-taxonomy analysis/20190807_silva_blast.qza 
+ --p-level 4 
+ --o-collapsed-table 20190819_lvl4_collapsed_table.qza
+
+ qiime taxa collapse 
+ --i-table analysis/20190814_fre2_id_grouped_table.qza 
+ --i-taxonomy analysis/20190807_silva_blast.qza 
+ --p-level 5 
+ --o-collapsed-table 20190819_lvl5_collapsed_table.qza
+
+ qiime taxa collapse 
+ --i-table analysis/20190814_fre2_id_grouped_table.qza 
+ --i-taxonomy analysis/20190807_silva_blast.qza 
+ --p-level 6 
+ --o-collapsed-table 20190819_lvl6_collapsed_table.qza
+
+ qiime taxa collapse 
+ --i-table analysis/20190814_fre2_id_grouped_table.qza 
+ --i-taxonomy analysis/20190807_silva_blast.qza 
+ --p-level 7 
+ --o-collapsed-table 20190819_lvl7_collapsed_table.qza
+
+#create and move the output tables to a new directory
+cd analysis/
+mkdir collapsed_tables
+cd ..
+mv 20190819_lvl* analysis/collapsed_tables/
+cd analysis/collapsed_tables
+
+#perform alpha diversity analysis "observed OTU"
+qiime diversity alpha \
+--i-table 20190819_lvl2_collapsed_table.qza \
+--p-metric observed_otus \
+--o-alpha-diversity 20190819_lvl2_collapsed_obs_otus.qza
+
+qiime diversity alpha 
+--i-table 20190819_lvl3_collapsed_table.qza 
+--p-metric observed_otus 
+--o-alpha-diversity 20190819_lvl3_collapsed_obs_otus.qza
+
+qiime diversity alpha 
+--i-table 20190819_lvl4_collapsed_table.qza 
+--p-metric observed_otus 
+--o-alpha-diversity 20190819_lvl4_collapsed_obs_otus.qza
+
+qiime diversity alpha 
+--i-table 20190819_lvl5_collapsed_table.qza 
+--p-metric observed_otus 
+--o-alpha-diversity 20190819_lvl5_collapsed_obs_otus.qza
+ 
+qiime diversity alpha 
+--i-table 20190819_lvl6_collapsed_table.qza 
+--p-metric observed_otus 
+--o-alpha-diversity 20190819_lvl6_collapsed_obs_otus.qza
+ 
+qiime diversity alpha 
+--i-table 20190819_lvl7_collapsed_table.qza 
+--p-metric observed_otus 
+--o-alpha-diversity 20190819_lvl7_collapsed_obs_otus.qza
+
+#visualise the generated tables
+qiime diversity alpha-correlation 
+--i-alpha-diversity 20190819_lvl2_collapsed_obs_otus.qza
+--m-metadata-file ../../20190819_grouped_metadata_new.tsv  
+--o-visualization ../../visual_artifacts/20190819_lvl2_collapsed_obs_otus.qzv
+
+qiime diversity alpha-correlation 
+--i-alpha-diversity 20190819_lvl3_collapsed_obs_otus.qza 
+--m-metadata-file ../../20190819_grouped_metadata_new.tsv  
+--o-visualization ../../visual_artifacts/20190819_lvl3_collapsed_obs_otus.qzv
+ 
+ qiime diversity alpha-correlation 
+ --i-alpha-diversity 20190819_lvl4_collapsed_obs_otus.qza 
+ --m-metadata-file ../../20190819_grouped_metadata_new.tsv  
+ --o-visualization ../../visual_artifacts/20190819_lvl4_collapsed_obs_otus.qzv
+ 
+ qiime diversity alpha-correlation 
+ --i-alpha-diversity 20190819_lvl5_collapsed_obs_otus.qza 
+ --m-metadata-file ../../20190819_grouped_metadata_new.tsv  
+ --o-visualization ../../visual_artifacts/20190819_lvl5_collapsed_obs_otus.qzv
+
+qiime diversity alpha-correlation 
+--i-alpha-diversity 20190819_lvl6_collapsed_obs_otus.qza 
+--m-metadata-file ../../20190819_grouped_metadata_new.tsv  
+--o-visualization ../../visual_artifacts/20190819_lvl6_collapsed_obs_otus.qzv
+
+qiime diversity alpha-correlation 
+--i-alpha-diversity 20190819_lvl7_collapsed_obs_otus.qza 
+--m-metadata-file ../../20190819_grouped_metadata_new.tsv  
+--o-visualization ../../visual_artifacts/20190819_lvl7_collapsed_obs_otus.qzv
 
 
 
