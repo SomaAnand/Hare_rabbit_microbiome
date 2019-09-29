@@ -1,0 +1,50 @@
+Source activate qiime2-2019.7
+#create a directory
+mkdir nanopore
+cd nanopore
+mkdir analysis
+cd analysis
+
+#Convert the processed output dataframe from Tsv format to BIOM format to enable importing in QIIME2
+biom convert -i output_table.tsv -o table.from_txt_hdf5.biom --table-type="OTU table" --to-hdf5
+
+#importing the feature table into QIIME2
+qiime tools import \
+--input-path table.from_txt_hdf5.biom \
+--type 'FeatureTable[Frequency]' \
+--input-format BIOMV210Format \
+--output-path 20190823_feature_table_nofreq.qza
+
+#Filter the feature table to remove features present at a frequency less than two
+qiime feature-table filter-features \
+--i-table 20190823_feature_table_nofreq.qza \
+--p-min-frequency 2 \
+--o-filtered-table 20190823_feature_table_freq2.qza
+
+#Export the generated feature table and create a taxonomy map in jupyter notebook and import it into QIIME2
+qiime tools import \
+--input-path 20190823_taxamap_minION_blast.tsv \
+--output-path 20190823_minION_freq2_taxonomy.qza \
+--type 'FeatureData[Taxonomy]'
+
+#Construct barplot
+qiime taxa barplot \
+--i-table 20190823_feature_table_freq2.qza \
+--i-taxonomy 20190823_minION_freq2_taxonomy.qza \
+--m-metadata-file ../minION-metadata.tsv \
+--o-visualization 20190823_minion_fre2_taxa-bar-plots.qzv
+
+#Filter table to retain phyla with only > 0.5% abundance as seen in taxa-bar-plots.qzv 
+qiime taxa filter-table 
+--i-table 20190823_minION_freq2_taxonomy.qza \
+--i-taxonomy 20190823_minION_freq2_taxonomy.qza \
+--p-include Firmicutes,Bacteroidetes,Verrucomicrobia,Actinobacteria,Cyanobacteria,Tenericutes,Proteobacteria,Patescibacteria,Lentisphaerae,Synergistetes \
+--o-filtered-table freq2-phyla-filtered-table.qza
+
+qiime taxa barplot \
+--i-table freq2-phyla-filtered-table.qza \
+--i-taxonomy 20190823_minION_freq2_taxonomy.qza \
+--m-metadata-file ../minION-metadata.tsv \
+--o-visualization 20190823_minion_fre2_phyla_taxa-bar-plots.qzv
+
+#Diversity analysis
