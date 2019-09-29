@@ -90,20 +90,72 @@ qiime feature-table filter-samples \
 --m-metadata-file sample-id-filter.tsv \
 --o-filtered-table analysis/id-filtered-freq2-table.qza 
 
+cd analysis
+
+#Split the table into two based on "Subject"
+qiime feature-table filter-samples \
+--i-table id-filtered-freq2-table.qza  \
+--m-metadata-file hare-samples.tsv \
+--o-filtered-table 20190828_hare_freq2_filtered_table.qza
+
+qiime feature-table filter-samples \
+--i-table id-filtered-freq2-table.qza  \
+--m-metadata-file rabbit-samples.tsv \
+--o-filtered-table 20190828_rabbit_freq2_filtered_table.qza
+
+#Rarefy the feature table based on the sample with lowest sequence counts
+
+qiime feature-table rarefy \
+--p-sampling-depth 178492 \
+--i-table 20190828_hare_freq2_filtered_table.qza \
+--o-rarefied-table 20190828_hare_freq2_filtered_rarified_table.qza
+
+qiime feature-table rarefy \
+--p-sampling-depth 149523 
+--i-table 20190828_rabbit_freq2_filtered_table.qza  
+--o-rarefied-table 20190828_rabbit_freq2_filtered_rarified_table.qza
+
+#merge both the rarified table together
+
+qiime feature-table merge \
+> --i-tables 20190828_rabbit_freq2_filtered_rarified_table.qza 20190828_hare_freq2_filtered_rarified_table.qza \
+> --o-merged-table 20190828_merged_rarified_illuminaDADA2.qza
+
 #Filter table to retain phyla with only > 0.5% abundance as seen in taxa-bar-plots.qzv 
 qiime taxa filter-table 
---i-table analysis/id-filtered-freq2-table.qza \
+--i-table 20190828_merged_rarified_illuminaDADA2.qza \
 --i-taxonomy analysis/20190807_silva_blast.qza \
 --p-include D_1__Firmicutes,D_1__Bacteroidetes,D_1__Verrucomicrobia,D_1__Actinobacteria,D_1__Cyanobacteria,D_1__Tenericutes,D_1__Proteobacteria,D_1__Patescibacteria,D_1__Lentisphaerae,D_1__Synergistetes \
---o-filtered-table analysis/sample-freq2-phyla-filtered-table.qza
+--o-filtered-table sample-freq2-rarified-phyla-filtered-table.qza
 
-#Import new metadata with only the retained samples
+cd ..
+
 #Visualise the filtered table 
 qiime taxa barplot \
---i-table analysis/sample-freq2-phyla-filtered-table.qza \
+--i-table analysis/sample-freq2-rarified-phyla-filtered-table.qza \
 --i-taxonomy analysis/20190807_silva_blast.qza \
 --m-metadata-file sample-only-metadata-new.tsv \
 --o-visualization visual_artifacts/sample-freq2-phyla-filtered-table.qzv
+
+#Heatmap at family level. Filter the feature table
+qiime taxa filter-table \
+--i-table 20190828_merged_rarified_illuminaDADA2.qza \
+--i-taxonomy ../20190807_silva_blast.qza \
+--p-include D_4__Ruminococcaceae,D_4__Clostridiaceae,D_4__Lachnospiraceae,D_4__Bacteroidaceae,D_4__Christensenellaceae,D_4__Rikenellaceae,D_4__Peptostreptococcaceae,D_4__Marinifilaceae,D_4__Akkermansiaceae,D_4__Clostridiales,D_4__Eubacteriaceae,D_4__Eggerthellaceae,D_4__Saccharimonadaceae,D_4__Barnesiellaceae,D_4__Victivallaceae,D_4__Desulfovibrionaceae,D_4__Enterococcaceae,D_4__Synergistaceae,D_4__Atopobiaceae,D_4__Veillonellaceae,D_4_
+_Erysipelotrichaceae,D_4__Burkholderiaceae,D_4__Planococcaceae,D_4__Bacillaceae,D_4__Thermoanaerobacteraceae,D_4__Enterobacteriaceae,D_4__Tannerellaceae,D_4__Lactobacillaceae,D_4__Anaeroplasmataceae \
+--o-filtered-table 20190829_rarified_freq2_familyfilt.qza
+
+qiime taxa collapse \
+--i-table  20190829_rarified_freq2_familyfilt.qza \
+--i-taxonomy ../20190807_silva_blast.qza \
+--p-level 5 \
+--o-collapsed-table 20190829_rarified_freq2_familyfilt_collapsed.qza
+
+qiime feature-table heatmap \
+--i-table 20190829_rarified_freq2_familyfilt_collapsed.qza \
+--m-metadata-file ../../sample-only-metadata-new.tsv \
+--m-metadata-column Subject \
+--o-visualization 20190829_rarified_freq2_familyfilt_collapsed_heatmap.qzv
 
 #Generating tree for phylogenetic analysis for alpha & beta diversity tests
 qiime phylogeny align-to-tree-mafft-fasttree \
@@ -116,7 +168,7 @@ qiime phylogeny align-to-tree-mafft-fasttree \
 #Alpha and beta diversity analysis
 qiime diversity core-metrics-phylogenetic \
 --i-phylogeny analysis/rooted-tree.qza \
---i-table analysis/id-filtered-freq2-table.qza \
+--i-table analysis/20190828_merged_rarified_illuminaDADA2.qza  \
 --p-sampling-depth 149500 \
 --output-dir analysis/core-metrics-results \
 --m-metadata-file sample-only-metadata-new.tsv
