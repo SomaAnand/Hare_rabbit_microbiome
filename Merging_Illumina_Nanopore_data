@@ -1,0 +1,29 @@
+#Merging and grouping Illumina and Nanopore data into "hares" and "rabbits" within QIIME2
+
+qiime feature-table merge \
+--i-tables 20190823_fre2_grouped_feature-table.qza ~/20190608_Illumina_MiSeq/20190805_DADA2_pipeline/BLAST_DADA2/20190822_fre2_id-filtered-table_grouped.qza \
+--o-merged-table 20190823_merged_freq2_table.qza
+
+#Export the table into Jupyter notebook and construct taxonomy file
+#Import the taxonomy file into QIIME2
+
+#Merge all hare samples into one and rabbit samples into one by taking mean of reads using the metatable "Subject"
+qiime feature-table group \
+--i-table 20190823_feature_table_freq2.qza \
+--p-axis sample \
+--m-metadata-file minION-metadata.tsv \
+--m-metadata-column Subject \
+--p-mode mean-ceiling \
+--o-grouped-table 20190823_fre2_grouped_feature-table.qza
+
+#Construct barplot
+qiime taxa barplot 
+--i-table 20190823_fre2_grouped_feature-table.qza 
+--i-taxonomy ../20190822_taxonomy_minion_illumina_merged.qza 
+--m-metadata-file 20190822_minion_illumina_metadata_grouped.tsv 
+--o-visualization 20190823_fre2_merged_grouped_taxa-bar-plots.qzv
+
+#View the barplot and filter based on frequency at family level
+
+
+
