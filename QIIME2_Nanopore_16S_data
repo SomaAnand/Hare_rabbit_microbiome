@@ -27,16 +27,46 @@ qiime tools import \
 --output-path 20190823_minION_freq2_taxonomy.qza \
 --type 'FeatureData[Taxonomy]'
 
+#Split the table into two based on "Subject"
+
+qiime feature-table filter-samples \
+--i-table 20190823_feature_table_freq2.qza  \
+--m-metadata-file hare-samples.tsv \
+--o-filtered-table 20190823_hare_freq2_filtered_table.qza
+
+qiime feature-table filter-samples \
+--i-table 20190823_feature_table_freq2.qza  \
+--m-metadata-file rabbit-samples.tsv \
+--o-filtered-table 20190823_rabbit_freq2_filtered_table.qza
+
+#Rarefy the feature table based on the sample with lowest sequence counts
+
+qiime feature-table rarefy \
+--p-sampling-depth 154307 \
+--i-table 20190823_hare_freq2_filtered_table.qza \
+--o-rarefied-table 20190823_hare_freq2_filtered_rarified_table.qza
+
+qiime feature-table rarefy \
+--p-sampling-depth 109435
+--i-table 20190823_rabbit_freq2_filtered_table.qza  
+--o-rarefied-table 20190823_rabbit_freq2_filtered_rarified_table.qza
+
+#merge both the rarified table together
+
+qiime feature-table merge \
+> --i-tables 20190823_rabbit_freq2_filtered_rarified_table.qza 20190823_hare_freq2_filtered_rarified_table.qza \
+> --o-merged-table 20190823_merged_rarified_MinION.qza
+
 #Construct barplot
 qiime taxa barplot \
---i-table 20190823_feature_table_freq2.qza \
+--i-table 20190823_merged_rarified_MinION.qza \
 --i-taxonomy 20190823_minION_freq2_taxonomy.qza \
 --m-metadata-file ../minION-metadata.tsv \
 --o-visualization 20190823_minion_fre2_taxa-bar-plots.qzv
 
 #Filter table to retain phyla with only > 0.5% abundance as seen in taxa-bar-plots.qzv 
 qiime taxa filter-table 
---i-table 20190823_minION_freq2_taxonomy.qza \
+--i-table 20190823_merged_rarified_MinION.qza \
 --i-taxonomy 20190823_minION_freq2_taxonomy.qza \
 --p-include Firmicutes,Bacteroidetes,Verrucomicrobia,Actinobacteria,Cyanobacteria,Tenericutes,Proteobacteria,Patescibacteria,Lentisphaerae,Synergistetes \
 --o-filtered-table freq2-phyla-filtered-table.qza
@@ -47,4 +77,47 @@ qiime taxa barplot \
 --m-metadata-file ../minION-metadata.tsv \
 --o-visualization 20190823_minion_fre2_phyla_taxa-bar-plots.qzv
 
+qiime taxa filter-table \
+--i-table 20190823_merged_rarified_MinION.qza \ 
+--i-taxonomy 20190823_minION_freq2_taxonomy.qza \
+--p-include Ruminococcaceae,Clostridiaceae,Lachnospiraceae,Bacteroidaceae,Christensenellaceae,Rikenellaceae,Peptostreptococcaceae,Marinifilaceae,Akkermansiaceae,Eubacteriaceae,Eggerthellaceae,Saccharimonadaceae,Barnesiellaceae,Victivallaceae,Desulfovibrionaceae,Enterococcaceae,Synergistaceae,Veillonellaceae,Erysipelotrichaceae,
+Burkholderiaceae,Planococcaceae,Bacillaceae,Enterobacteriaceae,Tannerellaceae,Lactobacillaceae,Anaeroplasmataceae,Flavobacteriaceae \
+--o-filtered-table 20190829_freq2_minION_familyfiltered.qza
+
+#Constructing heatmap at family rank
+qiime taxa collapse  \
+--i-table 20190829_freq2_minION_familyfiltered.qza \
+--i-taxonomy 20190823_minION_freq2_taxonomy.qza \ 
+--p-level 5 \
+--o-collapsed-table 20190829_rarified_minION_familyfil_collaped.qza
+
+qiime feature-table heatmap 
+--i-table 20190829_rarified_minION_familyfil_collaped.qza 
+--m-metadata-file ../../minION-metadata.tsv 
+--m-metadata-column Subject 
+--o-visualization 20190829_rarified_minION_freq2_familyfilt_collapsed_heatmap.qzv
+
+#Visualise the heatmap in qiime2.view
+
 #Diversity analysis
+qiime diversity core-metrics \
+--i-table 20190828_rarified_merged_minION.qza \
+--p-sampling-depth 109435 \
+--m-metadata-file ../../minION-metadata.tsv \
+--p-n-jobs 12 \
+--output-dir 20190830_core-metrics_109435_MinION
+
+#Visualise the bray-curtis image in qiime2.view
+
+#Beta group significance for bray-curtis dissimilairty matrix
+
+qiime diversity beta-group-significance \
+--i-distance-matrix 20190830_core-metrics_109435_MinION/bray_curtis_distance_matrix.qza \
+--m-metadata-file ../../minION-metadata.tsv \
+--m-metadata-column Subject \
+ --o-visualization visual_artifacts/bray_curtis_pcoa_results.qza
+ 
+ #Visualise the bray-curtis significance image in qiime2.view
+
+
+
