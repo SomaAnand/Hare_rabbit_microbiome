@@ -1,16 +1,18 @@
+#Importing
+
+#Visulising the imported data
 qiime demux summarize \
 > --i-data 20190924_demux-paired-end.qza \
 > --o-visualization 20190924_demux.qzv
 
+#Denoising through DADA2
+qiime dada2 denoise-single \
+--i-demultiplexed-seqs 20190924_demux-paired-end.qza \
+--p-trunc-len 
+
 qiime feature-classifier classify-consensus-blast \
 > --i-query representative_sequences.qza \
->  --i-reference-reads ~/20190608_Illumina_MiSeq/20190805_DADA2_pipeline/
-20190819_grouped_metadata_new.tsv  Data/                              sample-id-filter.tsv
-analysis/                          database/                          sample-only-metadata-new.tsv
-BLAST_DADA2/                       grouped_metadata.tsv               visual_artifacts/
->  --i-reference-reads ~/20190608_Illumina_MiSeq/20190805_DADA2_pipeline/database/
-20190807_SILVA_reference_Sequence.qza  __MACOSX/                              Silva_132_release.zip
-20190807_SILVA_taxonomy.qza            SILVA_132_QIIME_release/
+>  --i-reference-reads ~/20190608_Illumina_MiSeq/20190805_DADA2_pi
 >  --i-reference-reads ~/20190608_Illumina_MiSeq/20190805_DADA2_pipeline/database/20190807_SILVA_reference_Sequence.qza \
 >  --i-reference-taxonomy   ~/20190608_Illumina_MiSeq/20190805_DADA2_pipeline/database/20190807_SILVA_taxonomy.qza \
 > --o-classification 20190926_taxonomy_europe_BLAST
