@@ -12,3 +12,5 @@ QIIME2_Illumina_MiSeq_16S_data: Processing Illumina samples through QIIME2
 
 QIIME2_Nanopore_16S_data: Processing Nanopore samples through QIIME2
 
+Europe_hare_data_qiime2: Dataset from gut micobiome of European hares in the native region of Europe was used to perform comparitive studies. The study can be found here https://www.nature.com/articles/s41598-019-39638-9#Sec2
+
