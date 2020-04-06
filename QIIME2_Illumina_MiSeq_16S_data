@@ -92,34 +92,12 @@ qiime feature-table filter-samples \
 
 cd analysis
 
-#Split the table into two based on "Subject"
-qiime feature-table filter-samples \
---i-table id-filtered-freq2-table.qza  \
---m-metadata-file hare-samples.tsv \
---o-filtered-table 20190828_hare_freq2_filtered_table.qza
-
-qiime feature-table filter-samples \
---i-table id-filtered-freq2-table.qza  \
---m-metadata-file rabbit-samples.tsv \
---o-filtered-table 20190828_rabbit_freq2_filtered_table.qza
-
 #Rarefy the feature table based on the sample with lowest sequence counts
 
 qiime feature-table rarefy \
---p-sampling-depth 178492 \
---i-table 20190828_hare_freq2_filtered_table.qza \
---o-rarefied-table 20190828_hare_freq2_filtered_rarified_table.qza
-
-qiime feature-table rarefy \
 --p-sampling-depth 149523 
---i-table 20190828_rabbit_freq2_filtered_table.qza  
---o-rarefied-table 20190828_rabbit_freq2_filtered_rarified_table.qza
-
-#merge both the rarified table together
-
-qiime feature-table merge \
-> --i-tables 20190828_rabbit_freq2_filtered_rarified_table.qza 20190828_hare_freq2_filtered_rarified_table.qza \
-> --o-merged-table 20190828_merged_rarified_illuminaDADA2.qza
+--i-table id-filtered-freq2-table.qza 
+--o-rarefied-table 20190828_merged_rarified_illuminaDADA2.qza
 
 #Filter table to retain phyla with only > 0.5% abundance as seen in taxa-bar-plots.qzv 
 qiime taxa filter-table 
